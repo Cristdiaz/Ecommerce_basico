@@ -30,11 +30,17 @@ class Orden < ApplicationRecord
   def agregar_producto(id_producto, cantidad)
     producto = Producto.find(id_producto)
     if producto && producto.stock > 0 #cambio para que no se pueda vender producto con stock 0
-      detalles_ordenes.create(
+      producto_encontrado = detalles_ordenes.find_by(producto_id: producto.id)
+      if producto_encontrado 
+        producto_encontrado.cantidad += 1
+        producto_encontrado.save
+      else
+        detalles_ordenes.create(
         producto_id: producto.id, 
         cantidad: cantidad,
         precio: producto.precio
-      )
+        )
+      end
     end
   end
 end

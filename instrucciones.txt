@@ -552,7 +552,7 @@ Agregar a app/controllers/carros_controller.rb
     end
 
 
-3PRUEBAS DE CREDENCIALES DE PAYPAL
+PRUEBAS DE CREDENCIALES DE PAYPAL
 Crear archivo .env y agregar:
 
 PAYPAL_LOGIN_EMAIL=sb-xglup18801433_api1.business.example.com

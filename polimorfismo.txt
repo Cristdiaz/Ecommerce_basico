@@ -1,0 +1,67 @@
+Existen 3 tipos de POLIMORFISMO:
+
+1.Herencia:
+
+
+
+
+
+2. Ducktype:
+
+class Animal 
+    def mover(animal)
+        animal.mover
+    end
+end
+
+class Rata < Animal
+    def mover
+        "Corre con sus patitas"
+    end
+
+    
+    #Este es un método que es exclusivo del hijo, pero que el padre no puede hacerlo.
+    def roer
+        "Con sus dientes"
+    end
+end
+
+rata = Rata.new
+puts rata.roer
+puts rata.mover
+
+animal = Animal.new
+#animal.roer
+
+
+class Serpiente < Animal
+    def mover
+        "Se arrastra con ondas"
+    end
+end
+
+serpiente = Serpiente.new
+animal = Animal.new
+puts animal.mover
+
+
+
+class Persona
+    def respirar
+        "Inhala, exhala"
+    end
+end
+
+Si lo dejamos así no va a funcionar porque Persona no pertenece al mismo grupo,
+no hereda de la misma clase Animal
+Pero si lo arreglo así:
+
+persona = Persona.new
+serpiente = Serpiente.new
+animal = Animal.new
+puts animal.mover(persona)
+
+
+#############################
+
+Como implementamos esto a nuestros proyectos?
