@@ -38,10 +38,9 @@
 
   <div class="field">
   <%= form.label :categorias %>
-  <%= form.collection_check_boxes :categoria_ids, Categoria.all,
-  :id, :nombre do |b| %>
+    <%= form.collection_check_boxes :categoria_ids, Categoria.all,
+    :id, :nombre do |b| %>
   <%= b.check_box + b.text %> 
-  
   </div>
 
 

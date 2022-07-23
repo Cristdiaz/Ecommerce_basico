@@ -1,7 +1,12 @@
-Días: 11 y 12 de julio.
+Días 11, 12 y 13 de julio.
+
+
+##################################     DIA 1     #######################################
+
 
 1. CREAR EL PROYECTO:
-rails new Ecommerce
+
+a. rails new Ecommerce
 cd Ecommerce
 
 Si queremos programar en español debemos ir a config/initializers/inflections.rb
@@ -10,99 +15,97 @@ o copiaremos el contenido del initializer de este proyecto para poder programar 
 español, no solo algunos datos. 
 
 
-2. Hacer las tablas:
+b. Hacer las tablas:
 
-rails g scaffold Category name:string
-Revisar migraciones db/migrate/   que todo esté bien, el uso de plural y singular y además los datos 
+rails g scaffold Categoria nombre:string
+Revisar migraciones db/migrate  que todo esté bien, el uso de plural y singular y además los datos 
 de la tabla y sus tipos. 
 rails db:migrate
 
-rails g scaffold Product name:string description:text stock:integer
-price:decimal sku:string
+rails g scaffold Producto nombre:string descripcion:text stock:integer precio:decimal sku:string
+
 Al igual que el anterior revisar el contenido de la migración, corregir lo necesario y luego dar:
 rails db:migrate
 
 
-3. Relacionar ambas tablas con HABTM.
+2. RELACIONAR AMBAS TABLAS CON HABTM.
 
 Crear una tabla join que sea el conector entre ambos modelos y agregar la instrucción 
 has_and_belongs_to_many en cada uno de los modelos involucrados.
 
+
 a. Creamos la tabla intermedia que unirá a la otras 2:
-rails g migration CreateJoinTableProductCategory product category
+
+rails g migration CreateJoinTableProductoCategoria producto categoria
 Así debería quedar este archivo:
 
-class CreateJoinTableProductCategory < ActiveRecord::Migration[5.2]
-    def change  
-        create_join_table :products, :categories do |t|
-        t.index [:product_id, :category_id]
-        t.index [:category_id, :product_id]
-        end
+class CreateJoinTableCategoriaProducto < ActiveRecord::Migration[7.0]
+  def change
+    create_join_table :categorias, :productos do |t|
+      t.index [:categoria_id, :producto_id]
+      t.index [:producto_id, :categoria_id]
     end
+  end
 end
 
 rails db:migrate
 
-b.  Editaremos los modelos Product y Category de tal
+
+b.  Editaremos los modelos Producto y Categoria de tal
 manera que agregaremos has_and_belongs_to_many a cada uno de ellos.
 
-app/models/product.rb
+app/models/producto.rb
 
-class Product < ApplicationRecord
-    has_and_belongs_to_many :categories
+class Producto < ApplicationRecord
+    has_and_belongs_to_many :categorias
 end
 
 app/models/category.rb
 
-class Category < ApplicationRecord
-    has_and_belongs_to_many :products
+class Categoria < ApplicationRecord
+    has_and_belongs_to_many :productos
 end
 
+
 c. Ir al localhost:3000 y verificar que solo hay un formulario de producto, pero no categorías.
+
 
 d.Ir a vista _form.html.erb de los productos y agregaremos la siguiente porción de
 código que sirve de conector con las categorías.
 
 <div class="field">
-    <%= form.label :categories %>
-        <%= form.collection_check_boxes(:category_ids,
-                                        Category.all,
-                                        :id,
-                                        :name) do |b| %>
-        <%= b.label class:"label-checkbox" do%>
-            <%=b.check_box + b.text%>
-        <%end%>
-    <% end %>
+  <%= form.label :categorias %>
+    <%= form.collection_check_boxes :categoria_ids, Categoria.all,
+    :id, :nombre do |b| %>
+  <%= b.check_box + b.text %> 
 </div>
+
 
 e. Para que estos cambios sean guardados, debemos agregar en el controlador la instrucción
 necesaria para poder recibir los parámetros asociados a las categorías. Debemos recordar
 que Rails filtra los parámetros que recibe desde el formulario para evitar problemas de
 seguridad asociados a la asignación de parámetros. Agregaremos a los strong params
-category_ids para que sean procesados en el controlador. Editaremos el controlador de
+categoria_ids para que sean procesados en el controlador. Editaremos el controlador de
 productos y el método product_params quedará como sigue:
 
-app/controllers/products_controller.rb
+app/controllers/productos_controller.rb
 
-class ProductsController < ApplicationController
-before_action :set_product, only: [:show, :edit, :update, :destroy]
+class ProductosController < ApplicationController
+ before_action :set_producto, only: %i[ show edit update destroy ]
 
 ...
-
-private
-    
-    def product_params
-        params.require(:product).permit(:name, :description, :stock,
-    :price, :sku, {category_ids: []})
+# Only allow a list of trusted parameters through.
+    def producto_params
+      params.require(:producto).permit(:nombre, :descripcion, :stock, :precio, :sku, categoria_ids: [])
     end
-end
 
 
 
-2. ALMACENAR DATOS PREDERTERMINADOS:
+3. ALMACENAR DATOS PREDERTERMINADOS:
 
 Usando archivos Ruby podemos agregar datos que serán insertados en la base
 de datos usando el comando Rails db:seed. Serán los datos iniciales con los que comenzaremos.
+
 
 a. Es una buena práctica separar en otros archivos seeds según el contexto
 y cada uno de estos archivos ser invocados desde el archivo seeds.rb.
@@ -115,49 +118,57 @@ Así creamos desde consola nuestra nueva carpeta:
 
 mkdir db/seeds
 
+
 b. Luego crearemos el archivo categories.rb dentro del directorio recién creado y agregaremos
 el siguiente contenido:
 
-db/seeds/categories.rb
+db/seeds/categoriASs.rb
 
-Category.create(name: "Pasteles")
-Category.create(name: "Galleta")
-Category.create(name: "Gelatina")
-Category.create(name: "Bollería")
+Categoria.create(nombre: 'Pasteles')
+Categoria.create(nombre: 'Galletas')
+Categoria.create(nombre: 'Gelatina')
+Categoria.create(nombre: 'Bolleria')
+
 
 c. Luego crearemos un nuevo archivo en el mismo directorio llamado products.rb y agregaremos el
 siguiente contenido:
 
-db/seeds/products.rb
+db/seeds/productos.rb
 
-category_1 = Category.find_by(name: "Pasteles")
+c1 = Categoria.find_by(nombre: 'Pasteles')
+c2 = Categoria.find_by(nombre: 'Galletas')
+c3 = Categoria.find_by(nombre: 'Gelatina')
 
-p_01 = Product.create(name: "Panqueque de naranja", description: "con mermelada de naranja", stock: 10, price: 900, sku: "AIX0120")
-p_01.categories << category_1
+p1 = Producto.create(nombre: 'Torta tres leches', descripcion: 'Descripción2', stock: rand(6..12), precio: rand(50000..100000), sku: 'AEIK001')
+p1.categorias << c1
+p1.categorias << c2
 
 (Así podemos crear 10 productos más)
 
-El archivo db/seeds/products.rb nos permite crear un producto y a la vez asignarle la
+El archivo db/seeds/productos.rb nos permite crear un producto y a la vez asignarle la
 categoría. 
 
-d. Para unir estos dos archivos y relaciionar estos contenidos vamos a:
-db/seeds.rb
 
+d. Para unir estos dos archivos y relaciionar estos contenidos vamos adb/seeds.rb
 y agregamos el siguiente código:
-Dir[File.join(Rails.root, 'db', 'seeds', '*.rb')].sort.each { |seed|
-load seed }
+
+Dir[File.join(Rails.root, 'db', 'seeds', '*.rb')].sort.each { |seed| load seed }
+
 
 e. Ejecutar rails db:seed
+
 
 f. Revisar el localhost:3000, ahí deberíamos tener todos los datos ingresados
 
 
 
-3. PROTEGER NUESTROS RECURSOS CON LA GEMA DEVISE.
+4. PROTEGER NUESTROS RECURSOS CON LA GEMA DEVISE.
+
 
 AUTHENTICATION es el procedimiento para que solo algunos usuarios puedan acceder acceder
 distintas vistas de nuestro proyecto, y sus funciones también se vena limitadas.
 Acá lo haremos con DEVISE
+
 
 a. En Gemfile:  gem "devise" agregar al final del doc.
 bundle
@@ -170,12 +181,13 @@ b. Pegar en app/views/layouts/application.html.erb los 2 rails del paso 2 dentro
 c. En config/routes.rb poner root 'home#index' como página central,
    no está habilitado aún.
 
-b. Generaremos la Bd para los administradores del proyecto:
 
-rails generate (o g) devise Administrador (funciona como un scaffold)
+b. Generaremos la BD para los administradores del proyecto:
+
+rails generate (o g) devise Administrador       --> funciona como un scaffold
 rails db:migrate
 rails s
-localhost:3000/admins/sign_in   --> pantalla login para administradores
+localhost:3000/admins/sign_in                   --> pantalla login para administradores
 
 
 c. Para proteger los recursos y que solo los administradores puedan operar sobre ellos,
@@ -183,12 +195,12 @@ modificaremos el archivo routes.rb y utilizaremos una de las tantas funcionalida
 tiene Devise. Nuestro archivo de rutas quedará como sigue:
 
 Rails.application.routes.draw do
-    devise_for :admins
+    devise_for :adminsistradores
     root to: "home#index"
     
-    authenticate :admin do
-        resources :products
-        resources :categories
+    authenticate :administrador do
+        resources :productos
+        resources :categorias
     end
 
     # For details on the DSL available within this file, see
@@ -200,11 +212,14 @@ persona es redirigida al formulario de login para administradores.
 
 
 
-3. ESTRUCTURANDO EL E-COMMERCE:
+##################################     DIA 2     #######################################
+
+5. ESTRUCTURANDO EL E-COMMERCE:
 
 Tenemos los modelos Categorías y Productos, pero nos falta todo lo relacionado al proceso de compras y el carro.
 Tenemos que hacer dos modelos nuevos, Order que representa el carro o la orden de compra y Usuario, que es quien
 realizará la compra. 
+
 
 a. Hacemos el mismo procedimiento anterior con devise para crear la vista del Usuario que realizará la compra:
 
@@ -213,24 +228,171 @@ rails db:migrate
 
 b. Hacer el modelo de Orden: 
 
-rails g model Order user:references number:string total:decimal
-state:string
+rails g model Order usuario:references numero:string total:decimal estado:string
 rails db:migrate
 
+Y esto nos crea el modelo, la migración y el esqueleto para los test unitarios, corremos Rails
+db:migrate y ya estaremos listo para comenzar nuestro desarrollo usando TDD.
+
+
+c. Implementando los test TDD:
+
+Antes de hacer los tests, tendremos que crear algunos objetos con datos predeterminados o
+fixtures para cubrir los casos de User y Admin, ya que fueron creados con Devise y debemos
+asegurarnos que Rails levante el ambiente de pruebas de manera correcta
+
+
+a-1. Editaremos los archivos test/fixtures/usuarios.yml y test/fixtures/administradores.yml y luego,
+agregamos un par de líneas, de manera que quede solo el siguiente contenido:
+
+
+# usuarios:
+one: 
+  email:      primer_usuario@ejemplo.com
+two:
+  email:      segundo_usuario@ejemplo.com
+  
+#administrador:
+one: 
+  email: admin1@correo.com
+two: 
+  email: admin2@correo.com
+
+
+b-1. Hacer las pruebas e test/models/order_test.rb
+
+require "test_helper"
+
+class OrdenTest < ActiveSupport::TestCase
+  test 'Crear un número al azar cuando creo una orden' do
+      
+    #Arrange/Preparar
+      usuario = Usuario.create(email: "usuario@ejemplo.com", password: "Holaola")
+      #Act/Actuar
+      orden = Orden.create(usuario_id: usuario.id)
+      #Assert/Afirmar
+      orden_duplicada = orden.dup  #de duplicar
+      assert_not orden_duplicada.valid?  #No puede guardarse una orden duplicada
+  end
+
+SE RESUELVE ASÍ en models/order.rb:
+
+before_create -> { generar_numero(tam_hash) }
+belongs_to :usuario
+
+def generar_numero(tam_hash)
+    self.numero ||= loop do
+      random = generar_codigo_candidato(tam_hash)
+      break random unless self.class.exists?(numero: random)
+    end
+  end
+
+def generar_codigo_candidato(tam)
+    "#{prefijo_hash}#{Array.new(tam){rand(tam)}.join}"
+  end
+  
+  def prefijo_hash
+    "BO"
+  end
+  
+  def tam_hash
+    5
+  end
+
+
+  test 'Agregar producto a la orden' do
+      
+    #Arrange/Preparar
+      usuario = Usuario.create(email: "usuario@ejemplo.com", password: "Holaola")
+      #Crear la orden:
+      orden = Orden.create(usuario_id: usuario.id)
+      #Crear producto:
+      producto = producto(:p1)
+      producto = Producto.create(nombre'p1', precio: 100, stock: 8, SKU: 'AKDJ12')
+      #Actuar:
+      orden.agregar_producto(producto.id, 1)
+      #Assert/Afirmar
+      assert_equal orden.detalles_ordenes.count, 1
+  end
+
+ESTO SE RESUELVE ASÍ:
+
+validates :numero, uniqueness: true
 
 
 
+  test 'Número de la orden debe ser único' do
+      
+    #Arrange/Preparar
+      usuario = Usuario.create(email: "usuario@ejemplo.com", password: "Holaola")
+      #Act/Actuar
+      orden = Orden.create(usuario_id: usuario.id)
+      #Assert/Afirmar
+      assert !orden.numero.nil? #Si es diferente de nil
+  end
+  
+  test 'No agregar productos con 0 stock' do
+    # Preparar
+    usuario = Usuario.create(email: 'usuario@correo.com', password: '1q2we34r')
+    orden = Orden.create(usuario_id: usuario.id)
+    producto_sin_stock = Producto.create(nombre: 'testp1', precio: 1, stock: 0, sku: 'CM003')
+    # Actuar / Ejecutar
+    orden.agregar_producto(producto_sin_stock.id, 1)
+    # Asertar
+    assert_equal orden.detalles_ordenes.count, 0
+  end
+  
+end
+
+
+c-1 Por cada test en consola:
+rails test test/models/order_test.rb
+
+Si la consola arroja error podemos hacer 2 cosas dependiendo de lo que nos diga la consola:
+
+-Podemos agregar la gema "ffi" al final del Gemfile, puede ser debajo de la gem "devise"
+    bundle
+    rails test test/models/order_test.rb
+
+-Ejecutamos rails db:migrate RAILS_ENV= test
+
+-También podemos borrar la BD con rails db:drop o hacerlo de manera manual en db/development.sqlite3
 
 
 
+Continuaremos creando los modelos en nuestro poryecto.
+Necesitamos ahora crear un modelo con el detalle de la orden:
+
+rails g migration CreateDetalleOrden cantidad:integer precio:decimal producto:references
+orden:references
+Revisamos las migraciones y aplicamos rails db:migrate
+
+Vamos a los models:
+
+models/orden.rb
+    has_many :detalles_ordenes
+    has_many :productos, through: :detalles_ordenes
+
+models/producto.rb
+    has_and_belongs_to_many :categorias
+    has_many :detalles_ordenes
+    has_many :ordenes, through: :detalles_ordenes
+
+models/detalle_orden.rb
+    belongs_to :producto
+    belongs_to :orden
+
+models/usuario.rb
+    has_many :ordenes
 
 
 
+##################################     DIA 3     #######################################
 
-###################DIA 3#####################
-        PONER EL CARRO DE COMPRAS
 
-Primero agregamos en el test:
+5. PONER EL CARRO DE COMPRAS Y AGREGAR PRODUCTOS AL CARRO:
+
+a. Primero agregamos en el test:
 
  test 'No agregar productos con 0 stock' do
     # Preparar
@@ -244,28 +406,27 @@ Primero agregamos en el test:
   end
 
 
-
-
-
-En app/models/orden.rb
+b. En app/models/orden.rb
 
 def agregar_producto(id_producto, cantidad)
     producto = Producto.find(id_producto)
     if producto && producto.stock > 0 #cambio para que no se pueda vender producto con stock 0
-      detalles_ordenes.create(
+      producto_encontrado = detalles_ordenes.find_by(producto_id: producto.id)
+      if producto_encontrado 
+        producto_encontrado.cantidad += 1
+        producto_encontrado.save
+      else
+        detalles_ordenes.create(
         producto_id: producto.id, 
         cantidad: cantidad,
         precio: producto.precio
-      )
+        )
+      end
     end
 end
 
 
-
-
-
-
-Crear un nuevo controller para el carro:
+c. Crear un nuevo controller para el carro:
 app/controllers/carros_controllers.rb
 
   def update
@@ -282,9 +443,7 @@ app/controllers/carros_controllers.rb
     end
 
 
-
-
-Luego en app/controllers/application_controller.rb agregamos:
+d. Luego en app/controllers/application_controller.rb agregamos:
 
     def orden_actual
         if current_usuario # preguntar con devise si tenemos una sesión
@@ -298,12 +457,13 @@ Luego en app/controllers/application_controller.rb agregamos:
     end
 
 
-Crear la ruta para el carrito:
+e. Crear la ruta para el carrito:
 app/config/routes.rb
 
 resources :carros, only: [:show, :update]
 
-En el views/home/index.html.erb agregar debajo:
+
+f. En el views/home/index.html.erb agregar debajo:
 
 <%= form_for :carro, url: carro_path(0), method: :put do |f| %>
     <%= f.hidden_field :producto_id, value: producto.id %>
@@ -314,13 +474,10 @@ En el views/home/index.html.erb agregar debajo:
 Para que se pueda agregar al carro y luego que aparezca un mensaje.
 
 
-
-
-Crearemos una vista nueva para el carro:
+h. Crearemos una vista nueva para el carro:
 Creamos la carpeta carro y dentro el archivo show.html.erb para mostrar el contenido del carro:
 
 views/carro/show.html.erb
-
 
 <div class="card">
     <div class="card-header bg-dark text-light">
@@ -369,12 +526,24 @@ views/carro/show.html.erb
 </div>
 
 
-######
+f. Para que en el carro aparezca solo una vez el producto aunque compremos muchos ejemplares:
 
-¿Que pasa si agrego 2 veces el mismo producto?
-Me aparece el mismo producto 2 veces. 
-Además el total de la compra no se está calculando.
-
+def agregar_producto(id_producto, cantidad)
+    producto = Producto.find(id_producto)
+    if producto && producto.stock > 0 #cambio para que no se pueda vender producto con stock 0
+      producto_encontrado = detalles_ordenes.find_by(producto_id: producto.id)
+      if producto_encontrado 
+        producto_encontrado.cantidad += 1
+        producto_encontrado.save
+      else
+        detalles_ordenes.create(
+        producto_id: producto.id, 
+        cantidad: cantidad,
+        precio: producto.precio
+        )
+      end
+    end
+  end
 
 
 
@@ -382,16 +551,15 @@ Además el total de la compra no se está calculando.
 
 ###################### MEDIOS DE PAGO ########################
 
-
-
-
+a. Creamos el modelo MetodoPago
 rails g model MetodoPago nombre:string codigo:string
 rails db:migrate
 
 rails g model Pago estado:string total:decimal token:string orden:references metodo_pago:references 
 rails db:migrate
 
-Finalizar asociaciones en models:
+
+b. Asociaciones en models:
 
 app/models/pago.rb
 
@@ -402,7 +570,7 @@ end
 
 app/models/orden.rb
 
- has_many :pagos
+has_many :pagos
 has_many :metodos_pago, through: :pagos
 
 app/models/metodo_pago.rb
@@ -413,17 +581,21 @@ class MetodoPago < ApplicationRecord
 end
 
 
-Crear en add/seeds el archivo metodos_pago.rb y en él crear la fórmula para relacionar con Paypal
+c. Crear en add/seeds el archivo metodos_pago.rb y en él crear la fórmula para relacionar con Paypal
 
 MetodoPago.create(nombre: 'Paypal Express Checkour', codigo: 'PEC')
+Esto lo podemos agregar manualmente en consola con rails c y copiando la fórmula
+
+rails db:seed 
 
 
-
-Instalar gema: gem 'dotenv-rails', groups: [:development, :test]  
-#para las opciones de pago
+d. Instalar gemas: 
+gem 'dotenv-rails', groups: [:development, :test]  #para las opciones de pago
+gem 'activemerchant'                               # gestión de pagos 
 bundle
 
-Luego en config/environment/development.rb agregar:
+
+e. Luego en config/environment/development.rb agregar:
 
 config.after_initialize do
     ActiveMerchant::Billing::Base.mode = :test
@@ -435,11 +607,8 @@ config.after_initialize do
     ::EXPRESS_GATEWAY = ActiveMerchant::Billing::PaypalExpressGateway.new(paypal_options)
   end
 
-  al final. 
 
-
-
-Modificar show de views/carros
+f.Modificar show de views/carros
 
 <div class="card">
     <div class="card-header bg-dark text-light">
@@ -493,7 +662,7 @@ Modificar show de views/carros
 
 
 
-Agregar a app/controllers/carros_controller.rb
+g. Agregar a app/controllers/carros_controller.rb
 
  # POST
     def pagar_con_paypal
@@ -552,10 +721,11 @@ Agregar a app/controllers/carros_controller.rb
     end
 
 
-PRUEBAS DE CREDENCIALES DE PAYPAL
+h. PRUEBAS DE CREDENCIALES DE PAYPAL
 Crear archivo .env y agregar:
 
 PAYPAL_LOGIN_EMAIL=sb-xglup18801433_api1.business.example.com
 PAYPAL_PASSWORD=3DKKCT8ZRK28GL4H
 PAYPAL_SIGNATURE=A-Er.vf-9ZRNVhEXF4593mKl2H5JA.vtmLYJbbI7cPWOrcBEjPbrJaO.
+
 

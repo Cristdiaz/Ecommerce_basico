@@ -1,0 +1,14 @@
+Es posible que no todos los servicios estén disponibles con la gema de ruby, si es así,
+hay que ir a consumir la Api directamente:
+
+https://www.transbankdevelopers.cl/referencia/webpay?
+
+#INTEGRACIÓN:
+HOST = "https://webpay3gint.transbank.cl"
+Necesitamos un código de comercio
+
+?== TARJETAS DE CRÉDITO DE PRUEBA:
+
+
+#PRODUCCIÓN:
+HOST =

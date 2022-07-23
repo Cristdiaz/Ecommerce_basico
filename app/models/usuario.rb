@@ -4,5 +4,5 @@ class Usuario < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  has_many :ordenes #lo relacionamos con las ordenes.  
+  has_many :ordenes   
 end

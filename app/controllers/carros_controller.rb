@@ -12,11 +12,14 @@ class CarrosController < ApplicationController
         @orden = orden_actual
     end
 
+
+    #PAGAR CON PAYPAL:
+
     # POST
     def pagar_con_paypal
         orden = Orden.find(params[:carro][:orden_id])
         #price must be in cents
-        price = 100
+        price = orden.total
         # Aqui llamamos al express gateway que definimos al inicializar
         # que definimos en nuestro archivo config/development.rb y
         # preparamos la compra, donde se nos devolverá un token para
@@ -67,4 +70,8 @@ class CarrosController < ApplicationController
             end
         end
     end
+
+    #PAGAR CON WEBPAY TRANSBANK:
+    
+
 end

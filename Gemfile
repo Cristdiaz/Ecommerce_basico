@@ -76,3 +76,5 @@ gem "devise"
 gem "ffi"
 gem 'dotenv-rails', groups: [:development, :test]  #para las opciones de pago
 gem 'activemerchant'                               # gestión de pagos
+gem 'transbank-sdk'
+#gem "install transbank-sdk"

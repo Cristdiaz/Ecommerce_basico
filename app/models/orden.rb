@@ -43,4 +43,11 @@ class Orden < ApplicationRecord
       end
     end
   end
+
+  def calcular_total
+    precios = detalles_ordenes.map{|c| c.cantidad * c.precio}
+    self.total = precios.sum
+      self.save
+  end
+
 end
